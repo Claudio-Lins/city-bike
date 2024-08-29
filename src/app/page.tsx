@@ -4,8 +4,9 @@ import { getNetworks } from "@/lib/get-networks"
 import { getStationDetails } from "@/lib/get-station-details"
 import { Station } from "../../@types/city-bike-by-country-types"
 import { Map } from "@/components/map"
-import { MapLayers } from "@/components/map-layers"
+
 import { countStationsPerNetwork } from "@/lib/count-stations-per-network"
+import { BikeMap } from "@/components/bike-map"
 
 export default async function Home() {
   const networks: CityBikeTypes = await getNetworks()
@@ -31,9 +32,9 @@ export default async function Home() {
     <main className="flex min-h-screen flex-col items-center w-full">
       {/* <pre>{JSON.stringify(numberOfNetworksPerCountry, null, 2)}</pre> */}
       {/* <pre>{JSON.stringify(countStation, null, 2)}</pre> */}
-      <pre>{JSON.stringify(stationsDetails, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(stationsDetails, null, 2)}</pre> */}
       {/* <pre>{JSON.stringify(networks, null, 2)}</pre> */}
-      {/* <Map networks={networks} /> */}
+      <BikeMap />
     </main>
   )
 }

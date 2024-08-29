@@ -11,7 +11,7 @@ export default async function Home() {
   const networks: CityBikeTypes = await getNetworks()
   const networksByCountry = await getNetworksByCountry()
 
-  const networkHref = networks.networks[1]?.href
+  const networkHref = networks.networks[58]?.href
 
   // LAYER 1
   const numberOfNetworksPerCountry = Object.keys(networksByCountry).map(
@@ -30,8 +30,8 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center w-full">
       {/* <pre>{JSON.stringify(numberOfNetworksPerCountry, null, 2)}</pre> */}
-      <pre>{JSON.stringify(countStation, null, 2)}</pre>
-      {/* <pre>{JSON.stringify(stationsDetails, null, 2)}</pre> */}
+      {/* <pre>{JSON.stringify(countStation, null, 2)}</pre> */}
+      <pre>{JSON.stringify(stationsDetails, null, 2)}</pre>
       {/* <pre>{JSON.stringify(networks, null, 2)}</pre> */}
       {/* <Map networks={networks} /> */}
     </main>

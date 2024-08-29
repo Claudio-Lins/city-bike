@@ -30,6 +30,7 @@ const customIcon = new L.Icon({
 })
 
 export function BikeMap() {
+  const [activeLayer, setActiveLayer] = useState("networksByCountry")
   const [networksByCountry, setNetworksByCountry] = useState<{
     [country: string]: number
   }>({})
@@ -56,9 +57,13 @@ export function BikeMap() {
       <LayersControl position="topright">
         <LayersControl.Overlay
           name="Number of networks, per country"
-          checked={true}
+          checked={activeLayer === "networksByCountry"}
         >
-          <LayerGroup>
+          <LayerGroup
+            eventHandlers={{
+              add: () => setActiveLayer("networksByCountry"),
+            }}
+          >
             {Object.keys(networksByCountry).map((country) => {
               const position = countryPosition(country)
               return (
@@ -72,6 +77,38 @@ export function BikeMap() {
                 </Marker>
               )
             })}
+          </LayerGroup>
+        </LayersControl.Overlay>
+
+        <LayersControl.Overlay
+          name="Number of stations, per network"
+          checked={activeLayer === "stationsPerNetwork"}
+        >
+          <LayerGroup
+            eventHandlers={{
+              add: () => setActiveLayer("stationsPerNetwork"),
+            }}
+          >
+            <Marker position={[20, 0]} icon={customIcon}>
+              <Popup>
+                A pretty CSS3 popup. <br /> Easily customizable.
+              </Popup>
+            </Marker>
+          </LayerGroup>
+        </LayersControl.Overlay>
+
+        <LayersControl.Overlay
+          name="Station details."
+          checked={activeLayer === "anotherLayer"}
+        >
+          <LayerGroup
+            eventHandlers={{
+              add: () => setActiveLayer("anotherLayer"),
+            }}
+          >
+            <Marker position={[30, 10]} icon={customIcon}>
+              <Popup>Example popup for the third layer.</Popup>
+            </Marker>
           </LayerGroup>
         </LayersControl.Overlay>
       </LayersControl>

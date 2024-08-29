@@ -10,6 +10,7 @@ export interface Network {
   company: string[]
   system: string
   stations: Station[]
+  stationsCount: number
 }
 
 export interface Location {

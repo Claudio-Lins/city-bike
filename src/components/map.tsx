@@ -1,10 +1,37 @@
 "use client"
-import { cn } from "@/lib/utils"
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+import dynamic from "next/dynamic"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { useEffect, useState } from "react"
 import { CityBikeTypes, Network } from "../../@types/city-bike-types"
+import { Station } from "../../@types/city-bike-by-country-types"
+import { useMap } from "react-leaflet"
+
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  {
+    ssr: false,
+  }
+)
+
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  {
+    ssr: false,
+  }
+)
+
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  {
+    ssr: false,
+  }
+)
+
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+  ssr: false,
+})
+import "leaflet/dist/leaflet.css"
 
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -34,11 +61,13 @@ const MapWrapper = ({
   return <>{children}</>
 }
 
-interface mapProps {
+interface MapProps {
   networks: CityBikeTypes
+  numberOfNetworksPerCountry: { country: string; count: number }[]
+  stationsDetails: Station[]
 }
 
-export function Map({}: mapProps) {
+export function Map({}: MapProps) {
   const [networks, setNetworks] = useState<Network[]>([])
 
   useEffect(() => {
@@ -59,10 +88,7 @@ export function Map({}: mapProps) {
   return (
     <MapContainer style={{ height: "100vh", width: "100%" }}>
       <MapWrapper center={center} zoom={zoom}>
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          // attributionControl={true}
-        />
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {networks.map((network) => (
           <Marker
             key={network.id}

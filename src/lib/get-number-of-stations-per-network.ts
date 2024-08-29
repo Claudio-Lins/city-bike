@@ -10,10 +10,20 @@ export const getNumberOfStationsPerNetwork = async (): Promise<
 
     const stationCounts: Record<string, number> = {}
 
-    for (const network of networkData) {
-      const count = await getNumberOfStations(network.id)
-      stationCounts[network.id] = count
-    }
+    const promises = networkData.map(async (network) => {
+      try {
+        const count = await getNumberOfStations(network.id)
+        stationCounts[network.id] = count
+      } catch (error) {
+        console.error(
+          `Error fetching stations for network ${network.id}:`,
+          error
+        )
+        stationCounts[network.id] = 0
+      }
+    })
+
+    await Promise.all(promises)
 
     return stationCounts
   } catch (error) {

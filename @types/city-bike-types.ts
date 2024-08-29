@@ -15,6 +15,7 @@ export interface Network {
   license?: License
   scooters?: boolean
   instances?: Instance[]
+  stationsCount: number
 }
 
 export interface Instance {

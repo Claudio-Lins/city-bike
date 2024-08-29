@@ -1,7 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  LayersControl,
+  LayerGroup,
+} from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { getNetworksByCountry } from "@/lib/get-networks-by-country"
@@ -40,25 +47,34 @@ export function BikeMap() {
     <MapContainer
       center={[20, 0]}
       zoom={2}
-      style={{ height: "100vh", width: "100%" }}
+      style={{ height: "100vh", width: "100%", marginTop: -10 }}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      {Object.keys(networksByCountry).map((country) => {
-        const position = countryPosition(country)
-        return (
-          <Marker key={country} position={position} icon={customIcon}>
-            <Popup>
-              <div>
-                <strong>{country}</strong>
-                <p>Networks: {networksByCountry[country]}</p>
-              </div>
-            </Popup>
-          </Marker>
-        )
-      })}
+      <LayersControl position="topright">
+        <LayersControl.Overlay
+          name="Number of networks, per country"
+          checked={true}
+        >
+          <LayerGroup>
+            {Object.keys(networksByCountry).map((country) => {
+              const position = countryPosition(country)
+              return (
+                <Marker key={country} position={position} icon={customIcon}>
+                  <Popup>
+                    <div>
+                      <strong>{country}</strong>
+                      <p>Networks: {networksByCountry[country]}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              )
+            })}
+          </LayerGroup>
+        </LayersControl.Overlay>
+      </LayersControl>
     </MapContainer>
   )
 }

@@ -28,6 +28,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       const networks = await getNetworks()
+      console.log("Networks:", networks)
       const networksByCountry = await getNetworksByCountry()
       const stationsPositions = await getStationsPosition("velib")
       const networkHref = networks.networks[58]?.href

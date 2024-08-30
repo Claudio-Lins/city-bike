@@ -70,7 +70,7 @@ export function Map({ networks }: MapProps) {
 
   // useEffect(() => {
   //   // Usando fetch para fazer a requisição à API
-  //   fetch("http://api.citybik.es/v2/networks")
+  //   fetch("https://api.citybik.es/v2/networks")
   //     .then((response) => response.json())
   //     .then((data) => {
   //       setNetworks(data.networks)

@@ -4,7 +4,7 @@ export const getStationDetails = async (
   stationHref: string
 ): Promise<Station[]> => {
   try {
-    const baseUrl = "http://api.citybik.es"
+    const baseUrl = "https://api.citybik.es"
     const response = await fetch(`${baseUrl}${stationHref}`)
     const data: { network: { stations: Station[] } } = await response.json()
 

@@ -1,5 +1,5 @@
 export async function getStationsPosition(networkId: string) {
-  const url = `http://api.citybik.es/v2/networks/${networkId}`
+  const url = `https://api.citybik.es/v2/networks/${networkId}`
 
   try {
     const response = await fetch(url)

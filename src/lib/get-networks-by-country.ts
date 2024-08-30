@@ -4,7 +4,7 @@ export const getNetworksByCountry = async (): Promise<{
   [country: string]: number
 }> => {
   try {
-    const response = await fetch("http://api.citybik.es/v2/networks")
+    const response = await fetch("https://api.citybik.es/v2/networks")
     const data: CityBikeTypes = await response.json()
     const networksByCountry = data.networks.reduce(
       (acc: { [country: string]: number }, network: Network) => {

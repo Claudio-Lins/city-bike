@@ -3,7 +3,7 @@ export const getNumberOfStations = async (
 ): Promise<number> => {
   try {
     const response = await fetch(
-      `http://api.citybik.es/v2/networks/${networkId}`
+      `https://api.citybik.es/v2/networks/${networkId}`
     )
     if (!response.ok) {
       throw new Error(`Failed to fetch details for network ${networkId}`)

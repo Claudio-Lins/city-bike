@@ -1,6 +1,6 @@
-import { CityBikeTypes } from "../@types/city-bike-types"
+import { NetworksDataTypes, NetworkTypes } from "@/@types/networks-data-types"
 
-export const getNetworks = async (): Promise<CityBikeTypes> => {
+export const getNetworks = async (): Promise<NetworksDataTypes> => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`
@@ -10,7 +10,7 @@ export const getNetworks = async (): Promise<CityBikeTypes> => {
       throw new Error("Failed to fetch networks")
     }
 
-    const data: CityBikeTypes = await response.json()
+    const data: NetworksDataTypes = await response.json()
 
     return data
   } catch (error) {

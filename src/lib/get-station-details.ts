@@ -4,8 +4,9 @@ export const getStationDetails = async (
   stationHref: string
 ): Promise<Station[]> => {
   try {
-    const baseUrl = "https://api.citybik.es"
-    const response = await fetch(`${baseUrl}${stationHref}`)
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}${stationHref}`
+    )
     const data: { network: { stations: Station[] } } = await response.json()
 
     return data.network.stations

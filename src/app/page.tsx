@@ -6,7 +6,7 @@ import { getNetworksByCountry } from "@/lib/get-networks-by-country"
 import { getStationsPosition } from "@/lib/get-stations-position"
 import { countStationsPerNetwork } from "@/lib/count-stations-per-network"
 import { getStationDetails } from "@/lib/get-station-details"
-import { Network } from "@/@types/city-bike-types"
+import { Loader } from "lucide-react"
 
 const BikeMap = dynamic(
   () => import("@/components/bike-map").then((mod) => mod.BikeMap),
@@ -47,7 +47,12 @@ export default function Home() {
     fetchData()
   }, [])
 
-  if (!data) return <p>Loading...</p>
+  if (!data)
+    return (
+      <div className="flex w-full h-dvh items-center justify-center">
+        <Loader size="50" className=" animate-spin" />
+      </div>
+    )
 
   return (
     <main className="flex min-h-screen flex-col items-center w-full relative">

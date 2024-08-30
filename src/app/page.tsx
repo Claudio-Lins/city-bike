@@ -1,42 +1,62 @@
-import { getNetworksByCountry } from "@/lib/get-networks-by-country"
-import { CityBikeTypes } from "../../@types/city-bike-types"
+"use client"
+import { useEffect, useState } from "react"
+import dynamic from "next/dynamic"
 import { getNetworks } from "@/lib/get-networks"
-import { getStationDetails } from "@/lib/get-station-details"
-import { Station } from "../../@types/city-bike-by-country-types"
-import { Map } from "@/components/map"
-
+import { getNetworksByCountry } from "@/lib/get-networks-by-country"
+import { getStationsPosition } from "@/lib/get-stations-position"
 import { countStationsPerNetwork } from "@/lib/count-stations-per-network"
-import { BikeMap } from "@/components/bike-map"
-import { Layers } from "@/components/layers"
+import { getStationDetails } from "@/lib/get-station-details"
+import { Network } from "@/@types/city-bike-types"
 
-export default async function Home() {
-  const networks: CityBikeTypes = await getNetworks()
-  const networksByCountry = await getNetworksByCountry()
+const BikeMap = dynamic(
+  () => import("@/components/bike-map").then((mod) => mod.BikeMap),
+  { ssr: false }
+)
 
-  const networkHref = networks.networks[58]?.href
+type DataType = {
+  networks: any
+  networksByCountry: any
+  stationsPositions: any
+  countStation: any
+  stationsDetails: any
+  numberOfNetworksPerCountry: any
+} | null
 
-  // LAYER 1
-  const numberOfNetworksPerCountry = Object.keys(networksByCountry).map(
-    (country) => ({
-      country,
-      count: networksByCountry[country],
-    })
-  )
+export default function Home() {
+  const [data, setData] = useState<DataType>(null)
 
-  // LAYER 2
-  const countStation = await countStationsPerNetwork(networkHref)
+  useEffect(() => {
+    async function fetchData() {
+      const networks = await getNetworks()
+      const networksByCountry = await getNetworksByCountry()
+      const stationsPositions = await getStationsPosition("velib")
+      const networkHref = networks.networks[58]?.href
+      const countStation = await countStationsPerNetwork(networkHref)
+      const stationsDetails = await getStationDetails(networkHref)
 
-  // LAYER 3
-  const stationsDetails: Station[] = await getStationDetails(networkHref)
+      setData({
+        networks,
+        networksByCountry,
+        stationsPositions,
+        countStation,
+        stationsDetails,
+        numberOfNetworksPerCountry: networksByCountry.length,
+      })
+    }
+
+    fetchData()
+  }, [])
+
+  if (!data) return <p>Loading...</p>
 
   return (
     <main className="flex min-h-screen flex-col items-center w-full relative">
-      {/* <pre>{JSON.stringify(numberOfNetworksPerCountry, null, 2)}</pre> */}
-      {/* <pre>{JSON.stringify(countStation, null, 2)}</pre> */}
-      {/* <pre>{JSON.stringify(stationsDetails, null, 2)}</pre> */}
-      {/* <pre>{JSON.stringify(networks, null, 2)}</pre> */}
-      <BikeMap />
-      <Layers />
+      <BikeMap
+        stationsPositions={data.stationsPositions}
+        networksByCountry={data.networksByCountry}
+        stationsDetails={data.stationsDetails}
+        numberOfNetworksPerCountry={data.numberOfNetworksPerCountry}
+      />
     </main>
   )
 }

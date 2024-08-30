@@ -3,8 +3,8 @@ import dynamic from "next/dynamic"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { useEffect, useState } from "react"
-import { CityBikeTypes, Network } from "../../@types/city-bike-types"
-import { Station } from "../../@types/city-bike-by-country-types"
+import { CityBikeTypes, Network } from "../@types/city-bike-types"
+import { Station } from "../@types/city-bike-by-country-types"
 import { useMap } from "react-leaflet"
 
 const MapContainer = dynamic(

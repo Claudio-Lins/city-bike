@@ -1,4 +1,4 @@
-import { CityBikeTypes, Network } from "../../@types/city-bike-types"
+import { CityBikeTypes, Network } from "../@types/city-bike-types"
 
 export const getNetworksByCountry = async (): Promise<{
   [country: string]: number

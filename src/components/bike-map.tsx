@@ -12,37 +12,34 @@ import {
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { getNetworksByCountry } from "@/lib/get-networks-by-country"
-
-import "leaflet/dist/leaflet.css"
-import { getCountryPosition } from "@/lib/get-country-position"
+import { getStationDetails } from "@/lib/get-station-details"
 import { countryPosition } from "@/utils/countryPosition"
+import { getStationsPosition } from "@/lib/get-stations-position"
+import { Station } from "../@types/city-bike-by-country-types"
 
-// Definir um ícone personalizado para os marcadores (opcional)
 const customIcon = new L.Icon({
   iconUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
   iconSize: [25, 41],
   iconAnchor: [12.5, 41],
-  // shadowUrl:
-  //   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-  // shadowSize: [50, 64],
-  // shadowAnchor: [4, 62],
 })
 
-export function BikeMap() {
-  const [activeLayer, setActiveLayer] = useState("networksByCountry")
-  const [networksByCountry, setNetworksByCountry] = useState<{
+interface BikeMapProps {
+  stationsPositions: [number, number][]
+  networksByCountry: {
     [country: string]: number
-  }>({})
+  }
+  stationsDetails: Station[]
+  numberOfNetworksPerCountry: { country: string; count: number }[]
+}
 
-  useEffect(() => {
-    async function fetchData() {
-      const data = await getNetworksByCountry()
-      setNetworksByCountry(data)
-    }
-
-    fetchData()
-  }, [])
+export function BikeMap({
+  stationsPositions,
+  networksByCountry,
+  stationsDetails,
+  numberOfNetworksPerCountry,
+}: BikeMapProps) {
+  const [activeLayer, setActiveLayer] = useState("networksByCountry")
 
   return (
     <MapContainer
@@ -98,17 +95,37 @@ export function BikeMap() {
         </LayersControl.Overlay>
 
         <LayersControl.Overlay
-          name="Station details."
-          checked={activeLayer === "anotherLayer"}
+          name="Station details"
+          checked={activeLayer === "stationDetails"}
         >
           <LayerGroup
             eventHandlers={{
-              add: () => setActiveLayer("anotherLayer"),
+              add: () => setActiveLayer("stationDetails"),
             }}
           >
-            <Marker position={[30, 10]} icon={customIcon}>
-              <Popup>Example popup for the third layer.</Popup>
-            </Marker>
+            {stationsPositions.map(([lat, lng]: [number, number], index) => (
+              <Marker key={index} position={[lat, lng]} icon={customIcon}>
+                <Popup>
+                  <div>
+                    {/* <p>Name: {stationsDetails[index]?.name}</p> */}
+                    <pre>
+                      <strong>Station details:</strong>
+                      <p>
+                        ID: {stationsDetails[index]?.id},
+                        <br />
+                        Name: {stationsDetails[index]?.name},
+                        <br />
+                        Latitude: {stationsDetails[index]?.latitude},
+                        <br />
+                        Longitude: {stationsDetails[index]?.longitude}
+                        <br />
+                        <p>Free bikes: {stationsDetails[index]?.free_bikes}</p>
+                      </p>
+                    </pre>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
           </LayerGroup>
         </LayersControl.Overlay>
       </LayersControl>

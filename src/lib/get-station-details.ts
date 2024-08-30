@@ -1,4 +1,4 @@
-import { Station } from "../../@types/city-bike-by-country-types"
+import { Station } from "../@types/city-bike-by-country-types"
 
 export const getStationDetails = async (
   stationHref: string

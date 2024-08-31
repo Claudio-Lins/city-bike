@@ -1,7 +1,7 @@
 export const fetchDataWithCache = async <T>(
   url: string,
   cacheKey: string,
-  cacheDuration: number, // Em milissegundos
+  cacheDuration: number,
   options?: RequestInit
 ): Promise<T> => {
   const cachedData = localStorage.getItem(cacheKey)

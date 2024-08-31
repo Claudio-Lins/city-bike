@@ -39,7 +39,8 @@ export function BikeMap() {
         const data = await fetchDataWithCache<NetworksDataTypes>(
           `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`,
           "networksData",
-          5 * 60 * 1000 // Cache por 5 minutos
+          5 * 60 * 1000,
+          { mode: "no-cors" }
         )
         setNetworkData(data)
 
@@ -79,7 +80,8 @@ export function BikeMap() {
         }>(
           `${process.env.NEXT_PUBLIC_API_URL}${href}?fields=stations`,
           `stationsData_${href}`,
-          5 * 60 * 1000 // Cache por 5 minutos
+          5 * 60 * 1000,
+          { mode: "no-cors" } // Cache por 5 minutos
         )
 
         if (!response.network?.stations?.length) {
@@ -101,7 +103,8 @@ export function BikeMap() {
         const data = await fetchDataWithCache<NetworksDataTypes>(
           `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`,
           "networksByCountryData",
-          5 * 60 * 1000 // Cache por 5 minutos
+          5 * 60 * 1000,
+          { mode: "no-cors" }
         )
 
         const networksByCountry = data.networks.reduce(

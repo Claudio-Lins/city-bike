@@ -8,6 +8,8 @@ import {
   Popup,
   LayersControl,
   LayerGroup,
+  useMapEvents,
+  Tooltip,
 } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
@@ -26,6 +28,10 @@ export function BikeMap() {
   const [networksByCountry, setNetworksByCountry] = useState<
     Record<string, number>
   >({})
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
+  const [networksInCountry, setNetworksInCountry] = useState<CityBikeNetwork[]>(
+    []
+  )
 
   useEffect(() => {
     async function fetchNetworks() {
@@ -51,6 +57,38 @@ export function BikeMap() {
     fetchNetworks()
   }, [])
 
+  useEffect(() => {
+    const fetchNetworksInCountry = async () => {
+      const response = await fetch("http://api.citybik.es/v2/networks")
+      const data: CityBikeApiResponse = await response.json()
+
+      const networks = data.networks.filter(
+        (network) => network.location.country === selectedCountry
+      )
+      setNetworksInCountry(networks)
+    }
+
+    if (selectedCountry) {
+      fetchNetworksInCountry()
+    }
+  }, [selectedCountry])
+
+  const handleCountryClick = (country: string) => {
+    setSelectedCountry(country)
+    setActiveLayer("networksInCountry")
+  }
+
+  // Pink: Função para voltar ao L1 quando clicar fora dos markers
+  const MapEventsHandler = () => {
+    useMapEvents({
+      click: () => {
+        setSelectedCountry(null)
+        setActiveLayer("networksByCountry")
+      },
+    })
+    return null
+  }
+
   return (
     <MapContainer
       center={[20, 0]}
@@ -61,6 +99,8 @@ export function BikeMap() {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
+      <MapEventsHandler />{" "}
+      {/* Pink: Adiciona o manipulador de eventos no mapa */}
       <LayersControl position="topright">
         <LayersControl.Overlay
           name="Number of networks, per country"
@@ -72,21 +112,72 @@ export function BikeMap() {
             }}
           >
             {Object.entries(networksByCountry).map(([country, count]) => {
-              const position = countryPosition(country) || [0, 0] // Chama a função para obter a posição
+              const position: [number, number] = countryPosition(country) || [
+                0, 0,
+              ]
 
               return (
-                <Marker key={country} position={position} icon={customIcon}>
-                  <Popup>
+                <Marker
+                  key={country}
+                  position={position}
+                  icon={customIcon}
+                  eventHandlers={{
+                    click: () => handleCountryClick(country),
+                  }}
+                >
+                  <Tooltip
+                    direction="top"
+                    offset={[0, -25]}
+                    opacity={1}
+                    permanent={false}
+                  >
                     <div>
                       <strong>{country}</strong>
                       <p>Number of Networks: {count}</p>
                     </div>
-                  </Popup>
+                  </Tooltip>
                 </Marker>
               )
             })}
           </LayerGroup>
         </LayersControl.Overlay>
+
+        {selectedCountry && (
+          <LayersControl.Overlay
+            name={`Networks in ${selectedCountry}`}
+            checked={activeLayer === "networksInCountry"}
+          >
+            <LayerGroup
+              eventHandlers={{
+                add: () => setActiveLayer("networksInCountry"),
+              }}
+            >
+              {networksInCountry.map((network) => {
+                const position: [number, number] = [
+                  network.location.latitude,
+                  network.location.longitude,
+                ]
+
+                return (
+                  <Marker
+                    key={network.id}
+                    position={position}
+                    icon={customIcon}
+                  >
+                    <Tooltip>
+                      <div>
+                        <strong>{network.name}</strong>
+                        <p>
+                          Number of Stations: {network.stations?.length || 0}
+                        </p>
+                      </div>
+                    </Tooltip>
+                  </Marker>
+                )
+              })}
+            </LayerGroup>
+          </LayersControl.Overlay>
+        )}
       </LayersControl>
     </MapContainer>
   )

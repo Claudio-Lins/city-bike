@@ -13,7 +13,7 @@ import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { countryPosition } from "@/utils/countryPosition"
 import { NetworksDataTypes, NetworkTypes } from "@/@types/networks-data-types"
-import { NetworkDataTypes, Station } from "@/@types/network-data-types"
+import { NetworkDataTypes } from "@/@types/network-data-types"
 import { fetchDataWithCache } from "@/utils/fetchDataWithCache"
 
 const customIcon = new L.Icon({
@@ -32,11 +32,11 @@ export function BikeMap() {
   const [numberOfStationsPerNetwork, setNumberOfStationsPerNetwork] = useState<{
     [network: string]: number
   }>({})
-  const [stationDetails, setStationDetails] = useState<Station[]>([])
 
   useEffect(() => {
     const fetchNetworkData = async () => {
       try {
+        // Usar fetchDataWithCache para obter dados com cache
         const data = await fetchDataWithCache<NetworksDataTypes>(
           `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`,
           "networksData",
@@ -46,12 +46,10 @@ export function BikeMap() {
 
         const stationCounts = await Promise.all(
           data.networks.map(async (network: NetworkTypes) => {
-            const stationData = await getStationDetailsPerNetwork(network.href)
-            return {
-              id: network.id,
-              count: stationData.length,
-              stations: stationData,
-            }
+            const stationCount = await getNumberOfStationsPerNetwork(
+              network.href
+            )
+            return { id: network.id, count: stationCount }
           })
         )
 
@@ -67,32 +65,32 @@ export function BikeMap() {
         )
 
         setNumberOfStationsPerNetwork(stationCountsByNetwork)
-
-        const allStations = stationCounts.flatMap((item) => item.stations)
-        setStationDetails(allStations)
       } catch (error) {
         console.error("Error fetching networks and station counts:", error)
       }
     }
 
-    const getStationDetailsPerNetwork = async (
+    const getNumberOfStationsPerNetwork = async (
       href: string
-    ): Promise<Station[]> => {
+    ): Promise<number> => {
       try {
-        const response = await fetchDataWithCache<NetworkDataTypes>(
+        // Usar fetchDataWithCache para obter dados com cache
+        const response = await fetchDataWithCache<{
+          network: { stations: any[] }
+        }>(
           `${process.env.NEXT_PUBLIC_API_URL}${href}?fields=stations`,
-          `stationsDetails_${href}`,
-          5 * 60 * 1000
+          `stationsData_${href}`,
+          5 * 60 * 1000 // Cache por 5 minutos
         )
 
         if (!response.network?.stations?.length) {
-          return []
+          throw new Error("No stations found in the network.")
         }
 
-        return response.network.stations
+        return response.network.stations.length
       } catch (error: any) {
-        console.error(`Error fetching station details: ${error.message}`)
-        return []
+        console.error(`Error counting stations: ${error.message}`)
+        return 0
       }
     }
 
@@ -100,10 +98,11 @@ export function BikeMap() {
       [country: string]: number
     }> => {
       try {
+        // Usar fetchDataWithCache para obter dados com cache
         const data = await fetchDataWithCache<NetworksDataTypes>(
           `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`,
           "networksByCountryData",
-          5 * 60 * 1000
+          5 * 60 * 1000 // Cache por 5 minutos
         )
 
         const networksByCountry = data.networks.reduce(
@@ -129,7 +128,7 @@ export function BikeMap() {
     getNetworksByCountry().then((data) => setNetworksByCountry(data))
   }, [])
 
-  console.log("Fetched stations:", stationDetails)
+  console.log("networkData", networkData)
 
   return (
     <MapContainer
@@ -205,25 +204,30 @@ export function BikeMap() {
               add: () => setActiveLayer("stationDetails"),
             }}
           >
-            {stationDetails.map((station) => (
-              <Marker
-                key={station.id}
-                position={[station.latitude, station.longitude]}
-                icon={customIcon}
-              >
-                <Popup>
-                  <div>
-                    <strong>{station.name}</strong>
-                    <p>Available Bikes: {station.free_bikes}</p>
-                    <p>Empty Slots: {station.empty_slots}</p>
-                    <p>
-                      Last Updated:{" "}
-                      {new Date(station.timestamp).toLocaleString()}
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+            {networkData?.networks?.map((station) => {
+              const location = station.location
+              return (
+                <Marker
+                  key={station.id}
+                  position={[location.latitude, location.longitude]}
+                  icon={customIcon}
+                >
+                  <Popup>
+                    <div>
+                      <pre>
+                        <strong>Station details:</strong>
+                        <br />
+                        Name: {station.name}
+                        <br />
+                        City: {station?.location?.city}
+                        {JSON.stringify(station, null, 2)}
+                        <br />
+                      </pre>
+                    </div>
+                  </Popup>
+                </Marker>
+              )
+            })}
           </LayerGroup>
         </LayersControl.Overlay>
       </LayersControl>

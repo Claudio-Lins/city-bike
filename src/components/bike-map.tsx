@@ -216,7 +216,6 @@ export function BikeMap() {
                         <br />
                         Network ID: {network.id}
                         <br />
-                        Name: {network.name}
                       </pre>
                     </div>
                   </Popup>

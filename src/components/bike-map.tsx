@@ -38,7 +38,9 @@ export function BikeMap() {
         [country: string]: number
       }> => {
         try {
-          const response = await fetch("https://api.citybik.es/v2/networks")
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`
+          )
           const data: CityBikeTypes = await response.json()
           const networksByCountry = data.networks.reduce(
             (acc: { [country: string]: number }, network: Network) => {
@@ -80,11 +82,10 @@ export function BikeMap() {
         }
       }
       getNetworks().then((data) => setNetworkData(data))
+
+      //
     }
   }, [])
-
-  console.log("networksByCountry: ", networksByCountry)
-  console.log("networkData: ", networkData)
 
   return (
     <MapContainer
@@ -122,7 +123,7 @@ export function BikeMap() {
           </LayerGroup>
         </LayersControl.Overlay>
 
-        {/* <LayersControl.Overlay
+        <LayersControl.Overlay
           name="Number of stations, per network"
           checked={activeLayer === "stationsPerNetwork"}
         >
@@ -131,32 +132,31 @@ export function BikeMap() {
               add: () => setActiveLayer("stationsPerNetwork"),
             }}
           >
-            {Object.keys(networksByCountry).map((country) => {
-              const positionCountry = countryPosition(country)
-              const networks = Object.keys(networksByCountry).filter(
-                (network) => networksByCountry[network] > 0
-              )
-              const networksWithDetails = networks.filter((network) =>
-                stationsDetails.some((station) => station?.id === network)
-              )
-              const totalStations = networksWithDetails.reduce(
-                (acc, network) =>
-                  acc + stationsDetails.filter((s) => s.id === network).length,
-                0
-              )
+            {networkData?.networks?.map((network, index) => {
+              const countryLocation = network?.location
+              console.log("network: ", network)
               return (
-                <Marker key={country} position={positionCountry}>
+                <Marker
+                  key={network.id}
+                  position={[
+                    countryLocation.latitude,
+                    countryLocation.longitude,
+                  ]}
+                  icon={customIcon}
+                >
                   <Popup>
                     <div>
-                      <strong>{country}</strong>
-                      <p>Networks: {networksByCountry[country]}</p>
+                      <pre>
+                        <strong>Number of stations, per network:</strong>
+                        {/* {JSON.stringify(stationsDetails, null, 2)} */}
+                      </pre>
                     </div>
                   </Popup>
                 </Marker>
               )
             })}
           </LayerGroup>
-        </LayersControl.Overlay> */}
+        </LayersControl.Overlay>
 
         <LayersControl.Overlay
           name="Station details"

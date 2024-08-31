@@ -13,7 +13,7 @@ import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { countryPosition } from "@/utils/countryPosition"
 import { NetworksDataTypes, NetworkTypes } from "@/@types/networks-data-types"
-import { NetworkDataTypes } from "@/@types/network-data-types"
+import { NetworkDataTypes, Network, Station } from "@/@types/network-data-types"
 import { fetchDataWithCache } from "@/utils/fetchDataWithCache"
 
 const customIcon = new L.Icon({
@@ -220,7 +220,7 @@ export function BikeMap() {
                         Name: {station.name}
                         <br />
                         City: {station?.location?.city}
-                        {JSON.stringify(station, null, 2)}
+                        {JSON.stringify(station.stations, null, 2)}
                         <br />
                       </pre>
                     </div>

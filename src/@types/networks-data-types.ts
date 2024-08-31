@@ -7,6 +7,7 @@ export interface NetworkTypes {
   name: string
   location: LocationTypes
   href: string
+  stations: Station[]
   company: string[]
   gbfs_href?: string
   system?: string
@@ -15,6 +16,16 @@ export interface NetworkTypes {
   license?: LicenseTypes
   scooters?: boolean
   instances?: InstanceTypes[]
+}
+
+export interface Station {
+  id: string
+  name: string
+  latitude: number
+  longitude: number
+  timestamp: Date
+  free_bikes: number
+  empty_slots: number
 }
 
 export interface InstanceTypes {

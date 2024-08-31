@@ -31,7 +31,6 @@ export function BikeMap() {
   const [numberOfStationsPerNetwork, setNumberOfStationsPerNetwork] = useState<{
     [network: string]: number
   }>({})
-  const [stationDetails, setStationDetails] = useState<any[]>([])
 
   useEffect(() => {
     const fetchNetworkData = async () => {
@@ -87,9 +86,6 @@ export function BikeMap() {
           throw new Error("No stations found in the network.")
         }
 
-        // Atualizar estado com detalhes das estações
-        setStationDetails(response.network.stations)
-
         return response.network.stations.length
       } catch (error: any) {
         console.error(`Error counting stations: ${error.message}`)
@@ -101,6 +97,7 @@ export function BikeMap() {
       [country: string]: number
     }> => {
       try {
+        // Usar fetchDataWithCache para obter dados com cache
         const data = await fetchDataWithCache<NetworksDataTypes>(
           `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`,
           "networksByCountryData",
@@ -206,25 +203,27 @@ export function BikeMap() {
               add: () => setActiveLayer("stationDetails"),
             }}
           >
-            {stationDetails.map((station) => (
-              <Marker
-                key={station.id}
-                position={[station.latitude, station.longitude]}
-                icon={customIcon}
-              >
-                <Popup>
-                  <div>
-                    <strong>{station.name}</strong>
-                    <p>Available Bikes: {station.free_bikes}</p>
-                    <p>Empty Slots: {station.empty_slots}</p>
-                    <p>
-                      Last Updated:{" "}
-                      {new Date(station.timestamp).toLocaleString()}
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+            {networkData?.networks?.map((network) => {
+              const location = network.location
+              return (
+                <Marker
+                  key={network.id}
+                  position={[location.latitude, location.longitude]}
+                  icon={customIcon}
+                >
+                  <Popup>
+                    <div>
+                      <pre>
+                        <strong>Station details:</strong>
+                        <br />
+                        {JSON.stringify(network, null, 2)}
+                        <br />
+                      </pre>
+                    </div>
+                  </Popup>
+                </Marker>
+              )
+            })}
           </LayerGroup>
         </LayersControl.Overlay>
       </LayersControl>

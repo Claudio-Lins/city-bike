@@ -46,12 +46,12 @@ export function BikeMap() {
 
         const stationCounts = await Promise.all(
           data.networks.map(async (network: NetworkTypes) => {
-            const [stationCount, stations] = await Promise.all([
-              getNumberOfStationsPerNetwork(network.href),
-              getStationDetailsPerNetwork(network.href),
-            ])
-
-            return { id: network.id, count: stationCount, stations }
+            const stationData = await getStationDetailsPerNetwork(network.href)
+            return {
+              id: network.id,
+              count: stationData.length,
+              stations: stationData,
+            }
           })
         )
 
@@ -72,27 +72,6 @@ export function BikeMap() {
         setStationDetails(allStations)
       } catch (error) {
         console.error("Error fetching networks and station counts:", error)
-      }
-    }
-
-    const getNumberOfStationsPerNetwork = async (
-      href: string
-    ): Promise<number> => {
-      try {
-        const response = await fetchDataWithCache<NetworkDataTypes>(
-          `${process.env.NEXT_PUBLIC_API_URL}${href}?fields=stations`,
-          `stationsData_${href}`,
-          5 * 60 * 1000
-        )
-
-        if (!response.network?.stations?.length) {
-          throw new Error("No stations found in the network.")
-        }
-
-        return response.network.stations.length
-      } catch (error: any) {
-        console.error(`Error counting stations: ${error.message}`)
-        return 0
       }
     }
 
@@ -150,8 +129,7 @@ export function BikeMap() {
     getNetworksByCountry().then((data) => setNetworksByCountry(data))
   }, [])
 
-  console.log("networkData", networkData)
-  console.log("stationDetails", stationDetails)
+  console.log("Fetched stations:", stationDetails)
 
   return (
     <MapContainer

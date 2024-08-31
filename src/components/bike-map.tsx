@@ -12,9 +12,7 @@ import {
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { countryPosition } from "@/utils/countryPosition"
-import { NetworksDataTypes, NetworkTypes } from "@/@types/networks-data-types"
-import { NetworkDataTypes, Network, Station } from "@/@types/network-data-types"
-import { fetchDataWithCache } from "@/utils/fetchDataWithCache"
+import { CityBikeNetwork, CityBikeApiResponse } from "@/@types/cityBikeTypes"
 
 const customIcon = new L.Icon({
   iconUrl:
@@ -25,110 +23,33 @@ const customIcon = new L.Icon({
 
 export function BikeMap() {
   const [activeLayer, setActiveLayer] = useState("networksByCountry")
-  const [networksByCountry, setNetworksByCountry] = useState<{
-    [country: string]: number
-  }>({})
-  const [networkData, setNetworkData] = useState<NetworksDataTypes>()
-  const [numberOfStationsPerNetwork, setNumberOfStationsPerNetwork] = useState<{
-    [network: string]: number
-  }>({})
+  const [networksByCountry, setNetworksByCountry] = useState<
+    Record<string, number>
+  >({})
 
   useEffect(() => {
-    const fetchNetworkData = async () => {
-      try {
-        // Usar fetchDataWithCache para obter dados com cache
-        const data = await fetchDataWithCache<NetworksDataTypes>(
-          `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`,
-          "networksData",
-          5 * 60 * 1000
-        )
-        setNetworkData(data)
+    async function fetchNetworks() {
+      const response = await fetch("http://api.citybik.es/v2/networks")
+      const data: CityBikeApiResponse = await response.json()
 
-        const stationCounts = await Promise.all(
-          data.networks.map(async (network: NetworkTypes) => {
-            const stationCount = await getNumberOfStationsPerNetwork(
-              network.href
-            )
-            return { id: network.id, count: stationCount }
-          })
-        )
-
-        const stationCountsByNetwork = stationCounts.reduce(
-          (
-            acc: { [key: string]: number },
-            item: { id: string; count: number }
-          ) => {
-            acc[item.id] = item.count
-            return acc
-          },
-          {}
-        )
-
-        setNumberOfStationsPerNetwork(stationCountsByNetwork)
-      } catch (error) {
-        console.error("Error fetching networks and station counts:", error)
-      }
-    }
-
-    const getNumberOfStationsPerNetwork = async (
-      href: string
-    ): Promise<number> => {
-      try {
-        // Usar fetchDataWithCache para obter dados com cache
-        const response = await fetchDataWithCache<{
-          network: { stations: any[] }
-        }>(
-          `${process.env.NEXT_PUBLIC_API_URL}${href}?fields=stations`,
-          `stationsData_${href}`,
-          5 * 60 * 1000 // Cache por 5 minutos
-        )
-
-        if (!response.network?.stations?.length) {
-          throw new Error("No stations found in the network.")
-        }
-
-        return response.network.stations.length
-      } catch (error: any) {
-        console.error(`Error counting stations: ${error.message}`)
-        return 0
-      }
-    }
-
-    const getNetworksByCountry = async (): Promise<{
-      [country: string]: number
-    }> => {
-      try {
-        // Usar fetchDataWithCache para obter dados com cache
-        const data = await fetchDataWithCache<NetworksDataTypes>(
-          `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`,
-          "networksByCountryData",
-          5 * 60 * 1000 // Cache por 5 minutos
-        )
-
-        const networksByCountry = data.networks.reduce(
-          (acc: { [country: string]: number }, network: NetworkTypes) => {
-            const country = network.location.country
-            if (!acc[country]) {
-              acc[country] = 0
-            }
+      const countryNetworkCount: Record<string, number> = data.networks.reduce(
+        (acc, network) => {
+          const country = network.location.country
+          if (acc[country]) {
             acc[country] += 1
-            return acc
-          },
-          {}
-        )
+          } else {
+            acc[country] = 1
+          }
+          return acc
+        },
+        {} as Record<string, number>
+      )
 
-        return networksByCountry
-      } catch (error) {
-        console.error("Error fetching networks by country:", error)
-        throw new Error("Failed to fetch networks by country")
-      }
+      setNetworksByCountry(countryNetworkCount)
     }
 
-    fetchNetworkData()
-    getNetworksByCountry().then((data) => setNetworksByCountry(data))
+    fetchNetworks()
   }, [])
-
-  console.log("networkData", networkData)
 
   return (
     <MapContainer
@@ -150,79 +71,15 @@ export function BikeMap() {
               add: () => setActiveLayer("networksByCountry"),
             }}
           >
-            {Object.keys(networksByCountry).map((country) => {
-              const position = countryPosition(country)
+            {Object.entries(networksByCountry).map(([country, count]) => {
+              const position = countryPosition(country) || [0, 0] // Chama a função para obter a posição
+
               return (
                 <Marker key={country} position={position} icon={customIcon}>
                   <Popup>
                     <div>
                       <strong>{country}</strong>
-                      <p>Networks: {networksByCountry[country]}</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              )
-            })}
-          </LayerGroup>
-        </LayersControl.Overlay>
-
-        <LayersControl.Overlay
-          name="Number of stations, per network"
-          checked={activeLayer === "stationsPerNetwork"}
-        >
-          <LayerGroup
-            eventHandlers={{
-              add: () => setActiveLayer("stationsPerNetwork"),
-            }}
-          >
-            {networkData?.networks?.map((network) => {
-              const location = network.location
-              return (
-                <Marker
-                  key={network.id}
-                  position={[location.latitude, location.longitude]}
-                  icon={customIcon}
-                >
-                  <Popup>
-                    <div>
-                      <strong>{network.name}</strong>
-                      <p>Stations: {numberOfStationsPerNetwork[network.id]}</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              )
-            })}
-          </LayerGroup>
-        </LayersControl.Overlay>
-
-        <LayersControl.Overlay
-          name="Station details"
-          checked={activeLayer === "stationDetails"}
-        >
-          <LayerGroup
-            eventHandlers={{
-              add: () => setActiveLayer("stationDetails"),
-            }}
-          >
-            {networkData?.networks?.map((station) => {
-              const location = station.location
-              return (
-                <Marker
-                  key={station.id}
-                  position={[location.latitude, location.longitude]}
-                  icon={customIcon}
-                >
-                  <Popup>
-                    <div>
-                      <pre>
-                        <strong>Station details:</strong>
-                        <br />
-                        Name: {station.name}
-                        <br />
-                        City: {station?.location?.city}
-                        {JSON.stringify(station.stations, null, 2)}
-                        <br />
-                      </pre>
+                      <p>Number of Networks: {count}</p>
                     </div>
                   </Popup>
                 </Marker>

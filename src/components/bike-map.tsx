@@ -40,12 +40,14 @@ export function BikeMap() {
     []
   )
 
-  const initialCenter: [number, number] = [20, 0]
-  const initialZoom = 2
+  const initialCenter: [number, number] = [20, 0] // Centro inicial do mapa
+  const initialZoom = 2 // Zoom inicial do mapa
 
   useEffect(() => {
     async function fetchNetworks() {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`)
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`
+      )
       const data: CityBikeApiResponse = await response.json()
 
       const countryNetworkCount: Record<string, number> = data.networks.reduce(
@@ -69,7 +71,9 @@ export function BikeMap() {
 
   useEffect(() => {
     const fetchNetworksInCountry = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`)
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v2/networks`
+      )
       const data: CityBikeApiResponse = await response.json()
 
       const networks = data.networks.filter(
@@ -95,7 +99,8 @@ export function BikeMap() {
       setStationsInNetwork(data.network.stations)
       setActiveLayer("stationsInNetwork")
 
-      map.setView([network.location.latitude, network.location.longitude], 10)
+      // Ampliar o mapa e centralizar na posição da rede clicada no L2
+      map.setView([network.location.latitude, network.location.longitude], 10) // Zoom ajustado para centralizar a rede
     }
 
     return (
@@ -135,7 +140,7 @@ export function BikeMap() {
       setActiveLayer("networksInCountry")
 
       if (position) {
-        map.setView(position, 5)
+        map.setView(position, 5) // Ampliar e centralizar no país no L1
       }
     }
 
@@ -171,6 +176,7 @@ export function BikeMap() {
         setSelectedCountry(null)
         setActiveLayer("networksByCountry")
 
+        // Volta o zoom e a posição do mapa para os valores iniciais
         map.setView(initialCenter, initialZoom)
       },
     })
@@ -181,7 +187,7 @@ export function BikeMap() {
     const map = useMap()
 
     const handleClick = () => {
-      map.setView([station.latitude, station.longitude], 13)
+      map.setView([station.latitude, station.longitude], 13) // Ampliar menos e centralizar no L3
     }
 
     return (

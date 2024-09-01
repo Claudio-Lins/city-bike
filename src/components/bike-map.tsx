@@ -40,8 +40,8 @@ export function BikeMap() {
     []
   )
 
-  const initialCenter: [number, number] = [20, 0] // Centro inicial do mapa
-  const initialZoom = 2 // Zoom inicial do mapa
+  const initialCenter: [number, number] = [20, 0]
+  const initialZoom = 2
 
   useEffect(() => {
     async function fetchNetworks() {
@@ -99,8 +99,7 @@ export function BikeMap() {
       setStationsInNetwork(data.network.stations)
       setActiveLayer("stationsInNetwork")
 
-      // Ampliar o mapa e centralizar na posição da rede clicada no L2
-      map.setView([network.location.latitude, network.location.longitude], 10) // Zoom ajustado para centralizar a rede
+      map.setView([network.location.latitude, network.location.longitude], 10)
     }
 
     return (
@@ -140,7 +139,7 @@ export function BikeMap() {
       setActiveLayer("networksInCountry")
 
       if (position) {
-        map.setView(position, 5) // Ampliar e centralizar no país no L1
+        map.setView(position, 5)
       }
     }
 
@@ -176,7 +175,6 @@ export function BikeMap() {
         setSelectedCountry(null)
         setActiveLayer("networksByCountry")
 
-        // Volta o zoom e a posição do mapa para os valores iniciais
         map.setView(initialCenter, initialZoom)
       },
     })
@@ -187,7 +185,7 @@ export function BikeMap() {
     const map = useMap()
 
     const handleClick = () => {
-      map.setView([station.latitude, station.longitude], 13) // Ampliar menos e centralizar no L3
+      map.setView([station.latitude, station.longitude], 13)
     }
 
     return (

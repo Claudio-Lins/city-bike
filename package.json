@@ -20,7 +20,8 @@
     "react-dom": "^18",
     "react-leaflet": "^4.2.1",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^4.5.5"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
